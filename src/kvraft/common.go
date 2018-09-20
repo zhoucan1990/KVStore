@@ -5,8 +5,8 @@ const (
 	ErrNoKey = "ErrNoKey"
 
 	Append = "Append"
-	Put = "Put"
-	Get = "Get"
+	Put    = "Put"
+	Get    = "Get"
 )
 
 type Err string
@@ -40,39 +40,39 @@ type GetReply struct {
 }
 
 type getBgReq struct {
-	req *GetArgs
+	req  *GetArgs
 	done chan *bgResp
 }
 
 type updateBgReq struct {
-	req *PutAppendArgs
+	req  *PutAppendArgs
 	done chan *bgResp
 }
 
 type bgResp struct {
 	wrongLeader bool
-	err Err
-	value string
+	err         Err
+	value       string
 }
 
 type raftAckMsg struct {
 	index int
-	term int
+	term  int
 }
 
 type session struct {
-	sop *Op //op from caller
-	ack *raftAckMsg //raft commit1 ack
+	sop  *Op         //op from caller
+	ack  *raftAckMsg //raft commit1 ack
 	done chan *bgResp
 }
 
 type ValueRepo struct {
 	Values []*Value
-	Start int
+	Start  int
 }
 
 type Value struct {
-	Value string
+	Value   string
 	Version string
 }
 

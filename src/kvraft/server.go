@@ -1,14 +1,14 @@
 package raftkv
 
 import (
+	"bytes"
 	"encoding/gob"
 	"labrpc"
 	"log"
+	"os"
 	"raft"
 	"sync"
 	"time"
-	"os"
-	"bytes"
 )
 
 const Debug = 0
@@ -30,32 +30,32 @@ type Op struct {
 	// Your definitions here.
 	// Field names must start with capital letters,
 	// otherwise RPC will break.
-	Key string
+	Key   string
 	Value string
-	Type string
-	Cid int64
-	Seq int64
+	Type  string
+	Cid   int64
+	Seq   int64
 }
 
 type RaftKV struct {
-	mu      sync.Mutex
-	me      int
-	rf      *raft.Raft
+	mu sync.Mutex
+	me int
+	rf *raft.Raft
 
 	maxraftstate int // snapshot if log grows this big
 
 	// Your definitions here.
-	close chan struct{}
+	close     chan struct{}
 	sessionCh chan *session
-	applyCh chan raft.ApplyMsg
-	cpCh chan struct{}
+	applyCh   chan raft.ApplyMsg
+	cpCh      chan struct{}
 
 	sessionMap map[int]*session // raft index to hanging session
-	requests map[int64]int64 // client id to sequence for dedup
-	kvStore map[string]string
+	requests   map[int64]int64  // client id to sequence for dedup
+	kvStore    map[string]string
 
-	inSnap bool
-	curIdx int
+	inSnap    bool
+	curIdx    int
 	persister *raft.Persister
 }
 
@@ -94,18 +94,18 @@ func (kv *RaftKV) readSnapshot(snapshot []byte, idx int) {
 
 func (kv *RaftKV) bgLoop() {
 	for {
-			select {
-			case msg :=<- kv.applyCh:
-				kv.applyMsg(msg)
-			case ev := <- kv.sessionCh:
-				DPrintf("Receive session event: %v", ev)
-				kv.sessionMap[ev.ack.index] = ev
-			case <- kv.cpCh:
-				kv.makeSnapshot()
-			case <- kv.close:
-				kv.closeSession()
-				return
-			}
+		select {
+		case msg := <-kv.applyCh:
+			kv.applyMsg(msg)
+		case ev := <-kv.sessionCh:
+			DPrintf("Receive session event: %v", ev)
+			kv.sessionMap[ev.ack.index] = ev
+		case <-kv.cpCh:
+			kv.makeSnapshot()
+		case <-kv.close:
+			kv.closeSession()
+			return
+		}
 	}
 }
 
@@ -180,13 +180,13 @@ func (kv *RaftKV) sendOp(op *Op) *bgResp {
 	}
 	done := make(chan *bgResp)
 	kv.sessionCh <- &session{
-		sop: op,
-		ack: &raftAckMsg{index: index, term: term},
+		sop:  op,
+		ack:  &raftAckMsg{index: index, term: term},
 		done: done,
 	}
 	select {
-	case ret = <- done:
-	case <- time.After(tickInterval):
+	case ret = <-done:
+	case <-time.After(tickInterval):
 		break
 	}
 	return ret
@@ -195,7 +195,7 @@ func (kv *RaftKV) sendOp(op *Op) *bgResp {
 func (kv *RaftKV) Get(args *GetArgs, reply *GetReply) {
 	// Your code here.
 	op := Op{
-		Key: args.Key,
+		Key:  args.Key,
 		Type: Get,
 	}
 	ret := kv.sendOp(&op)
@@ -214,11 +214,11 @@ func (kv *RaftKV) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
 	DPrintf("Put %s %s %s\n", args.Key, args.Value, args.Op)
 	// Your code here.
 	op := Op{
-		Key: args.Key,
+		Key:   args.Key,
 		Value: args.Value,
-		Type: args.Op,
-		Cid: args.Cid,
-		Seq: args.Seq,
+		Type:  args.Op,
+		Cid:   args.Cid,
+		Seq:   args.Seq,
 	}
 	ret := kv.sendOp(&op)
 	if ret == nil {

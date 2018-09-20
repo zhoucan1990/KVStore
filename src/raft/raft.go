@@ -980,7 +980,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 					//To check the condition again, after snapshot operation release lock
 					if index := rf.lastApplied; index < rf.commitIndex {
 						applyCh <- ApplyMsg{Index: index + 1, Command: rf.log[index+1].Command}
-							rf.lastApplied++
+						rf.lastApplied++
 					}
 					rf.Unlock()
 				}

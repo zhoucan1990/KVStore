@@ -4,8 +4,8 @@ import "labrpc"
 import "crypto/rand"
 import (
 	"math/big"
-	"time"
 	"sync/atomic"
+	"time"
 )
 
 var sleepInterval = 1 * time.Millisecond
@@ -14,8 +14,8 @@ type Clerk struct {
 	servers []*labrpc.ClientEnd
 	// You will have to modify this struct.
 	leader int
-	cid int64
-	seq int64
+	cid    int64
+	seq    int64
 }
 
 func nrand() int64 {
@@ -86,12 +86,12 @@ func (ck *Clerk) Get(key string) string {
 //
 func (ck *Clerk) PutAppend(key string, value string, op string) {
 	seq := atomic.AddInt64(&ck.seq, 1)
-	args := PutAppendArgs {
-		Key: key,
+	args := PutAppendArgs{
+		Key:   key,
 		Value: value,
-		Op: op,
-		Cid: ck.cid,
-		Seq: seq,
+		Op:    op,
+		Cid:   ck.cid,
+		Seq:   seq,
 	}
 	l := len(ck.servers)
 	i := ck.leader % l
